@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Moon, Sun, Menu, X, Code2 } from 'lucide-react';
+import { Moon, Sun, Menu, X } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 
 const navLinks = [
-  { label: 'About', href: '#about' },
-  { label: 'Skills', href: '#skills' },
-  { label: 'Projects', href: '#projects' },
-  { label: 'Journey', href: '#journey' },
-  { label: 'Experience', href: '#experience' },
+  { label: 'Story', href: '#story' },
+  { label: 'Work', href: '#work' },
+  { label: 'Community', href: '#community' },
   { label: 'Contact', href: '#contact' },
 ];
 
@@ -37,15 +35,19 @@ export default function Navbar() {
           : 'bg-transparent'
       }`}
     >
-      <nav className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between" aria-label="Main navigation">
+      <nav
+        className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between"
+        aria-label="Main navigation"
+      >
         <a
           href="#home"
-          onClick={(e) => { e.preventDefault(); handleNav('#home'); }}
-          className="flex items-center gap-2 font-bold text-gray-900 dark:text-white hover:text-brand-500 transition-colors"
+          onClick={(e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+          className="font-bold text-gray-900 dark:text-white hover:text-brand-500 transition-colors"
           aria-label="Shivani Pal — Home"
         >
-          <Code2 className="w-5 h-5 text-brand-500" aria-hidden="true" />
-          <span className="font-mono text-sm">shivani.dev</span>
+          <span className="font-mono text-sm tracking-wide">
+            Shivani <span className="text-brand-500">Pal</span>
+          </span>
         </a>
 
         {/* Desktop nav */}
@@ -70,18 +72,19 @@ export default function Navbar() {
           >
             {resolvedTheme === 'dark'
               ? <Sun className="w-5 h-5" aria-hidden="true" />
-              : <Moon className="w-5 h-5" aria-hidden="true" />
-            }
+              : <Moon className="w-5 h-5" aria-hidden="true" />}
           </button>
 
           <button
             className="md:hidden p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            onClick={() => setMobileOpen(v => !v)}
+            onClick={() => setMobileOpen((v) => !v)}
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
           >
-            {mobileOpen ? <X className="w-5 h-5" aria-hidden="true" /> : <Menu className="w-5 h-5" aria-hidden="true" />}
+            {mobileOpen
+              ? <X className="w-5 h-5" aria-hidden="true" />
+              : <Menu className="w-5 h-5" aria-hidden="true" />}
           </button>
         </div>
       </nav>

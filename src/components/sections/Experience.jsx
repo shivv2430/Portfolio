@@ -125,7 +125,7 @@ export default function Experience() {
 
   return (
     <section
-      id="experience"
+      id="community"
       ref={ref}
       className="section-padding"
       aria-labelledby="experience-heading"
@@ -137,9 +137,9 @@ export default function Experience() {
           transition={{ duration: 0.6 }}
           className="mb-12"
         >
-          <span className="text-sm font-mono font-medium text-brand-500 tracking-widest uppercase">Activities</span>
+          <span className="text-sm font-mono font-medium text-brand-500 tracking-widest uppercase">Community &amp; Milestones</span>
           <h2 id="experience-heading" className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mt-2">
-            Experience &amp; Involvement
+            Beyond Academics
           </h2>
           <p className="mt-3 text-gray-500 dark:text-gray-400 max-w-xl">
             Hackathons, open-source contributions, and community involvement that have shaped my growth.

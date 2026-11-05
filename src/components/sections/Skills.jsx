@@ -57,7 +57,7 @@ export default function Skills() {
         >
           <span className="text-sm font-mono font-medium text-brand-500 tracking-widest uppercase">Tech Stack</span>
           <h2 id="skills-heading" className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mt-2">
-            Skills &amp; Tools
+            Toolbox
           </h2>
           <p className="mt-3 text-gray-500 dark:text-gray-400 max-w-xl">
             Technologies I work with and tools that have become part of my everyday workflow.

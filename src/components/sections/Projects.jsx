@@ -96,7 +96,7 @@ export default function Projects() {
 
   return (
     <section
-      id="projects"
+      id="work"
       ref={ref}
       className="section-padding bg-gray-50/50 dark:bg-gray-900/30"
       aria-labelledby="projects-heading"
@@ -110,7 +110,7 @@ export default function Projects() {
         >
           <span className="text-sm font-mono font-medium text-brand-500 tracking-widest uppercase">Portfolio</span>
           <h2 id="projects-heading" className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mt-2">
-            Featured Projects
+            Selected Work
           </h2>
           <p className="mt-3 text-gray-500 dark:text-gray-400 max-w-xl">
             A selection of projects I&apos;ve built — each one a step in my growth as a developer.
