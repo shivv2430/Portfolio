@@ -1,154 +1,141 @@
-import { useRef } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { Award, Users, Code2, ExternalLink, Calendar } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Award, Users, Terminal, Calendar, HeartHandshake, Leaf } from 'lucide-react';
 
-const experiences = [
+const COMMUNITY_ACTIVITIES = [
   {
-    id: 'gssoc',
-    type: 'Open Source',
+    id: 1,
+    title: "GirlScript Summer of Code (GSSoC'26)",
+    role: 'Participant, Open Source',
+    emoji: '🌸',
+    icon: Terminal,
+    context: 'Contributing pull requests, reviewing issues, and collaborating with mentors on open source codebases.',
+  },
+  {
+    id: 2,
+    title: 'Microsoft Learn Student Ambassador Community',
+    role: 'Community Member',
     emoji: '🌐',
-    color: 'from-orange-400 to-pink-500',
-    title: "GSSoC'26 Contributor",
-    org: 'GirlScript Summer of Code',
-    period: '2026',
-    description:
-      "Contributing to open-source projects as part of GirlScript Summer of Code 2026 — reviewing issues, submitting PRs, and collaborating with maintainers across diverse repositories.",
-    tags: ['Open Source', 'Collaboration', 'GitHub'],
-    link: null,
+    icon: Users,
+    context: 'Engaging with student developer sessions, exploring Microsoft learning tracks, and sharing tech knowledge.',
   },
   {
-    id: 'flipkart',
-    type: 'Hackathon',
-    emoji: '🏆',
-    color: 'from-yellow-400 to-orange-500',
-    title: 'Flipkart GRiD 8.0',
-    org: 'Flipkart',
-    period: '2026',
-    description:
-      'Cleared the screening round of Flipkart GRiD 8.0, a prestigious engineering challenge testing real-world problem-solving, system design, and technical depth.',
-    tags: ['Hackathon', 'Problem Solving', 'Engineering'],
-    link: null,
+    id: 3,
+    title: 'Hackathons',
+    role: 'Participant',
+    emoji: '⚡',
+    icon: Award,
+    context: 'Prototyping software under sprint constraints, teaming up with peers, and building practical solutions.',
   },
   {
-    id: 'mlsa',
-    type: 'Community',
-    emoji: '🎓',
-    color: 'from-blue-400 to-indigo-500',
-    title: 'Microsoft Learn Student Ambassador',
-    org: 'Microsoft',
-    period: '2025 – Present',
-    description:
-      "Part of Microsoft's global student community — participating in learning events, connecting with fellow developers, and exploring Microsoft technologies like Azure and AI.",
-    tags: ['Microsoft', 'Community', 'Azure', 'Learning'],
-    link: null,
-  },
-  {
-    id: 'hacktoberfest',
-    type: 'Open Source',
+    id: 4,
+    title: 'Hacktoberfest Offline Meetup 2026',
+    role: 'Attended',
     emoji: '🎃',
-    color: 'from-purple-400 to-pink-500',
-    title: 'Hacktoberfest 2026 Participant',
-    org: 'DigitalOcean / GitHub',
-    period: 'October 2026',
-    description:
-      'Contributed to open-source projects during Hacktoberfest 2026 — submitting meaningful pull requests, fixing bugs, and improving documentation across public repositories.',
-    tags: ['Open Source', 'Hacktoberfest', 'GitHub'],
-    link: null,
+    icon: Calendar,
+    context: 'Connecting with local developers, celebrating open-source culture in person, and learning community practices.',
+  },
+  {
+    id: 5,
+    title: 'Salaah, Technology Department',
+    role: 'Member',
+    emoji: '🤝',
+    icon: HeartHandshake,
+    context: 'Collaborating on technological initiatives, peer learning, and college community support systems.',
+  },
+  {
+    id: 6,
+    title: 'Eco Club, Social and Content Documentation',
+    role: 'Member',
+    emoji: '🌱',
+    icon: Leaf,
+    context: 'Documenting environmental initiatives, creating student awareness materials, and handling club media.',
   },
 ];
 
-function ExperienceCard({ exp, index, inView }) {
+function CommunityRow({ item, index }) {
+  const rowRef = useRef(null);
+  const [isCentered, setIsCentered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!rowRef.current) return;
+      const rect = rowRef.current.getBoundingClientRect();
+      const windowCenter = window.innerHeight / 2;
+      const rowCenter = rect.top + rect.height / 2;
+      const nearCenter = Math.abs(rowCenter - windowCenter) < 100;
+      setIsCentered(nearCenter);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: index % 2 === 0 ? -30 : 30 }}
-      animate={inView ? { opacity: 1, x: 0 } : {}}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      className="relative bg-white dark:bg-gray-800/60 rounded-2xl border border-gray-100 dark:border-gray-700/50 overflow-hidden hover:border-brand-200 dark:hover:border-brand-800 hover:shadow-lg transition-all duration-300 group"
+      ref={rowRef}
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.35, delay: index * 0.05 }}
+      className={`rounded-2xl p-5 sm:p-6 transition-all duration-300 border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+        isCentered
+          ? 'bg-purple-100/60 dark:bg-cinematic-800 border-gold-400 dark:border-gold-400 -translate-y-1 shadow-lg shadow-purple-950/20 ring-1 ring-gold-400/40'
+          : 'bg-white dark:bg-cinematic-900 border-purple-200/50 dark:border-purple-800/40 hover:border-brand-400/50 shadow-sm'
+      }`}
     >
-      <div className={`h-1 bg-gradient-to-r ${exp.color}`} aria-hidden="true" />
-
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${exp.color} flex items-center justify-center text-xl shadow-md flex-shrink-0`} aria-hidden="true">
-              {exp.emoji}
-            </div>
-            <div>
-              <span className="text-xs font-mono font-medium text-brand-500 uppercase tracking-wider">{exp.type}</span>
-              <h3 className="font-bold text-gray-900 dark:text-white leading-tight">{exp.title}</h3>
-            </div>
-          </div>
-          {exp.link && (
-            <a
-              href={exp.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`View ${exp.title}`}
-              className="p-1.5 text-gray-400 hover:text-brand-500 transition-colors rounded-lg"
-            >
-              <ExternalLink className="w-4 h-4" aria-hidden="true" />
-            </a>
-          )}
+      <div className="flex items-start sm:items-center gap-4">
+        <span className="text-3xl p-2.5 rounded-xl bg-purple-50 dark:bg-cinematic-850 border border-purple-200/40 dark:border-purple-800/40 flex-shrink-0" aria-hidden="true">
+          {item.emoji}
+        </span>
+        <div>
+          <h3 className="font-serif text-xl sm:text-2xl text-gray-900 dark:text-white leading-tight">
+            {item.title}
+          </h3>
+          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 font-sans mt-0.5">
+            {item.context}
+          </p>
         </div>
+      </div>
 
-        <div className="flex items-center gap-2 mb-3 text-sm text-gray-500 dark:text-gray-400">
-          <Users className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-          <span>{exp.org}</span>
-          <span aria-hidden="true">·</span>
-          <Calendar className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
-          <span>{exp.period}</span>
-        </div>
-
-        <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
-          {exp.description}
-        </p>
-
-        <div className="flex flex-wrap gap-1.5" role="list" aria-label="Tags">
-          {exp.tags.map((tag) => (
-            <span
-              key={tag}
-              role="listitem"
-              className="px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-700/60 text-gray-600 dark:text-gray-300 rounded-md"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+      <div className="flex items-center sm:self-center">
+        <span className="inline-block text-xs font-mono font-medium px-3 py-1.5 rounded-full bg-purple-100/80 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 border border-purple-300/40 dark:border-purple-800/60 whitespace-nowrap">
+          {item.role}
+        </span>
       </div>
     </motion.div>
   );
 }
 
 export default function Experience() {
-  const ref = useRef(null);
-  const inView = useInView(ref, { once: true, margin: '-80px' });
-
   return (
     <section
       id="community"
-      ref={ref}
-      className="section-padding"
-      aria-labelledby="experience-heading"
+      className="section-padding bg-white dark:bg-cinematic-950 relative"
+      aria-labelledby="community-heading"
     >
       <div className="container-max">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="mb-12"
-        >
-          <span className="text-sm font-mono font-medium text-brand-500 tracking-widest uppercase">Community &amp; Milestones</span>
-          <h2 id="experience-heading" className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mt-2">
+        {/* Section Header */}
+        <div className="text-center max-w-xl mx-auto mb-14">
+          <span className="text-xs font-mono font-semibold text-gold-500 tracking-widest uppercase">
+            Involvement
+          </span>
+          <h2
+            id="community-heading"
+            className="text-4xl sm:text-5xl font-serif text-gray-900 dark:text-white mt-1 mb-3"
+          >
             Beyond Academics
           </h2>
-          <p className="mt-3 text-gray-500 dark:text-gray-400 max-w-xl">
-            Hackathons, open-source contributions, and community involvement that have shaped my growth.
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-sans">
+            Collaborative development, student ambassador communities, hackathons, and student organizations.
           </p>
-        </motion.div>
+        </div>
 
-        <div className="grid sm:grid-cols-2 gap-6">
-          {experiences.map((exp, i) => (
-            <ExperienceCard key={exp.id} exp={exp} index={i} inView={inView} />
+        {/* Clean Row List */}
+        <div className="max-w-4xl mx-auto space-y-3.5">
+          {COMMUNITY_ACTIVITIES.map((act, idx) => (
+            <CommunityRow key={act.id} item={act} index={idx} />
           ))}
         </div>
       </div>

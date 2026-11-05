@@ -110,3 +110,4 @@ If you connect external services in the future (e.g., EmailJS, Formspree, Google
 - Prefix variable names with `VITE_` (e.g., `VITE_CONTACT_FORM_ENDPOINT`).
 - In AWS Amplify: configure them in **App settings > Environment variables**.
 - In local development: place them in `.env.local` (already included in `.gitignore`).
+

@@ -1,89 +1,98 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { Play, RotateCcw, Trophy } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Play, RotateCcw, Trophy, Heart } from 'lucide-react';
 
-const STACK_ITEMS = [
-  { label: 'React', emoji: '⚛️' },
-  { label: 'Node.js', emoji: '🟢' },
-  { label: 'Python', emoji: '🐍' },
-  { label: 'C++', emoji: '⚡' },
-  { label: 'Tailwind', emoji: '💨' },
-  { label: 'MongoDB', emoji: '🍃' },
-  { label: 'Git', emoji: '🔀' },
-  { label: 'Figma', emoji: '🎨' },
-  { label: 'AWS', emoji: '☁️' },
-  { label: 'Vite', emoji: '⚡' },
+const TECH_WORDS = [
+  { text: 'React', color: '#61dafb' },
+  { text: 'C++', color: '#00599c' },
+  { text: 'JS', color: '#f7df1e' },
+  { text: 'Git', color: '#f05032' },
+  { text: 'AWS', color: '#ff9900' },
+  { text: 'HTML', color: '#e34f26' },
 ];
 
-const BUG_ITEMS = [
-  { label: 'Bug', emoji: '🐛' },
-  { label: 'Crash', emoji: '💥' },
-  { label: 'Error', emoji: '❌' },
-  { label: '404', emoji: '🚫' },
-];
-
-const GAME_WIDTH = 360;
-const GAME_HEIGHT = 420;
-const PADDLE_W = 72;
-const PADDLE_H = 16;
-const ITEM_SIZE = 36;
-const SPAWN_MS = 800;
-const GAME_DURATION = 30; // seconds
+const GAME_WIDTH = 380;
+const GAME_HEIGHT = 440;
+const PADDLE_W = 76;
+const PADDLE_H = 14;
 
 function clamp(val, min, max) {
   return Math.max(min, Math.min(max, val));
 }
 
 export default function CatchTheCode() {
-  const sectionRef = useRef(null);
-  const inView = useInView(sectionRef, { once: true, margin: '-80px' });
   const canvasRef = useRef(null);
   const rafRef = useRef(null);
   const spawnRef = useRef(null);
 
   const [gameState, setGameState] = useState('idle'); // idle | playing | over
   const [score, setScore] = useState(0);
-  const [timeLeft, setTimeLeft] = useState(GAME_DURATION);
-  const [caught, setCaught] = useState([]);
+  const [lives, setLives] = useState(3);
+  const [bestScore, setBestScore] = useState(() => {
+    try {
+      return parseInt(localStorage.getItem('catch_code_best') || '0', 10);
+    } catch {
+      return 0;
+    }
+  });
 
   const stateRef = useRef({
     paddleX: GAME_WIDTH / 2 - PADDLE_W / 2,
     items: [],
     score: 0,
-    caught: [],
-    timeLeft: GAME_DURATION,
+    lives: 3,
+    bestScore: 0,
   });
 
-  // Paddle movement — arrow keys / touch
+  // Track key presses: Left/Right and A/D
   const keysRef = useRef({ left: false, right: false });
 
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'ArrowLeft') keysRef.current.left = true;
-    if (e.key === 'ArrowRight') keysRef.current.right = true;
-  }, []);
-  const handleKeyUp = useCallback((e) => {
-    if (e.key === 'ArrowLeft') keysRef.current.left = false;
-    if (e.key === 'ArrowRight') keysRef.current.right = false;
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      keysRef.current.left = true;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      keysRef.current.right = true;
+    }
   }, []);
 
+  const handleKeyUp = useCallback((e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+      keysRef.current.left = false;
+    }
+    if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+      keysRef.current.right = false;
+    }
+  }, []);
+
+  // Touch / pointer drag
   const handlePointerMove = useCallback((e) => {
     const rect = canvasRef.current?.getBoundingClientRect();
     if (!rect) return;
-    const x = (e.clientX ?? e.touches?.[0]?.clientX) - rect.left;
-    stateRef.current.paddleX = clamp(x - PADDLE_W / 2, 0, GAME_WIDTH - PADDLE_W);
+    const clientX = e.clientX ?? e.touches?.[0]?.clientX;
+    if (clientX === undefined) return;
+    const relativeX = clientX - rect.left;
+    stateRef.current.paddleX = clamp(relativeX - PADDLE_W / 2, 0, GAME_WIDTH - PADDLE_W);
   }, []);
 
-  // Spawn items
+  // Spawn item (either a Tech Word or a Bug)
   const spawnItem = useCallback(() => {
-    const isBug = Math.random() < 0.25;
-    const pool = isBug ? BUG_ITEMS : STACK_ITEMS;
-    const chosen = pool[Math.floor(Math.random() * pool.length)];
+    const isBug = Math.random() < 0.28;
+    const wordObj = TECH_WORDS[Math.floor(Math.random() * TECH_WORDS.length)];
+    
+    // Speed increases with score
+    const speedMultiplier = 1 + Math.min(2.2, stateRef.current.score / 120);
+    const baseSpeed = isBug ? 2.8 : 2.2;
+
     stateRef.current.items.push({
-      ...chosen,
+      text: isBug ? '🐛 BUG' : wordObj.text,
       isBug,
-      x: Math.random() * (GAME_WIDTH - ITEM_SIZE),
-      y: -ITEM_SIZE,
-      speed: 2 + Math.random() * 2,
+      color: isBug ? '#ef4444' : wordObj.color,
+      x: 20 + Math.random() * (GAME_WIDTH - 80),
+      y: -24,
+      speed: (baseSpeed + Math.random() * 1.2) * speedMultiplier,
+      w: isBug ? 52 : 46,
+      h: 22,
     });
   }, []);
 
@@ -93,204 +102,245 @@ export default function CatchTheCode() {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
 
-    // Clear
+    // Clear canvas
     ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
+    // Subtle background grid
+    ctx.strokeStyle = 'rgba(168, 85, 247, 0.08)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < GAME_WIDTH; x += 30) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, GAME_HEIGHT);
+      ctx.stroke();
+    }
+
     // Move paddle with keys
-    if (keysRef.current.left) s.paddleX = clamp(s.paddleX - 6, 0, GAME_WIDTH - PADDLE_W);
-    if (keysRef.current.right) s.paddleX = clamp(s.paddleX + 6, 0, GAME_WIDTH - PADDLE_W);
+    if (keysRef.current.left) s.paddleX = clamp(s.paddleX - 6.5, 0, GAME_WIDTH - PADDLE_W);
+    if (keysRef.current.right) s.paddleX = clamp(s.paddleX + 6.5, 0, GAME_WIDTH - PADDLE_W);
 
     // Draw paddle
-    ctx.fillStyle = '#4a6cf7';
+    const paddleY = GAME_HEIGHT - PADDLE_H - 12;
+    const gradient = ctx.createLinearGradient(s.paddleX, 0, s.paddleX + PADDLE_W, 0);
+    gradient.addColorStop(0, '#c084fc');
+    gradient.addColorStop(0.5, '#a855f7');
+    gradient.addColorStop(1, '#fbbf24');
+    ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.roundRect(s.paddleX, GAME_HEIGHT - PADDLE_H - 10, PADDLE_W, PADDLE_H, 8);
+    ctx.roundRect(s.paddleX, paddleY, PADDLE_W, PADDLE_H, 6);
     ctx.fill();
 
-    // Update & draw items
-    const remaining = [];
+    // Glow for paddle
+    ctx.shadowColor = '#a855f7';
+    ctx.shadowBlur = 8;
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Update and draw items
+    const nextItems = [];
     for (const item of s.items) {
       item.y += item.speed;
 
-      // Check collision with paddle
-      const hitX = item.x + ITEM_SIZE / 2 > s.paddleX && item.x + ITEM_SIZE / 2 < s.paddleX + PADDLE_W;
-      const hitY = item.y + ITEM_SIZE > GAME_HEIGHT - PADDLE_H - 10 && item.y < GAME_HEIGHT - 10;
+      // Hit test with paddle
+      const collidesX = item.x + item.w > s.paddleX && item.x < s.paddleX + PADDLE_W;
+      const collidesY = item.y + item.h >= paddleY && item.y <= paddleY + PADDLE_H;
 
-      if (hitX && hitY) {
+      if (collidesX && collidesY) {
         if (item.isBug) {
-          s.score = Math.max(0, s.score - 5);
+          s.lives -= 1;
+          setLives(s.lives);
+          if (s.lives <= 0) {
+            setGameState('over');
+            return;
+          }
         } else {
           s.score += 10;
-          if (!s.caught.includes(item.label)) s.caught.push(item.label);
+          setScore(s.score);
+          if (s.score > s.bestScore) {
+            s.bestScore = s.score;
+            setBestScore(s.score);
+            try {
+              localStorage.setItem('catch_code_best', String(s.score));
+            } catch {}
+          }
         }
-        setScore(s.score);
-        setCaught([...s.caught]);
-        continue; // consumed
+        continue; // Consumed
       }
 
-      // Off screen
-      if (item.y > GAME_HEIGHT) continue;
+      // Check boundary bottom
+      if (item.y > GAME_HEIGHT) {
+        continue;
+      }
 
-      // Draw
-      ctx.font = '24px system-ui';
+      // Draw item capsule
+      ctx.fillStyle = item.isBug ? 'rgba(239, 68, 68, 0.2)' : 'rgba(168, 85, 247, 0.2)';
+      ctx.strokeStyle = item.color;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(item.x, item.y, item.w, item.h, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Text inside capsule
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(item.emoji, item.x + ITEM_SIZE / 2, item.y + ITEM_SIZE / 2);
+      ctx.fillText(item.text, item.x + item.w / 2, item.y + item.h / 2);
 
-      remaining.push(item);
+      nextItems.push(item);
     }
-    s.items = remaining;
+    s.items = nextItems;
 
     rafRef.current = requestAnimationFrame(loop);
   }, []);
 
-  // Start game
   const startGame = useCallback(() => {
     stateRef.current = {
       paddleX: GAME_WIDTH / 2 - PADDLE_W / 2,
       items: [],
       score: 0,
-      caught: [],
-      timeLeft: GAME_DURATION,
+      lives: 3,
+      bestScore: bestScore,
     };
     setScore(0);
-    setTimeLeft(GAME_DURATION);
-    setCaught([]);
+    setLives(3);
     setGameState('playing');
-  }, []);
+  }, [bestScore]);
 
-  // Playing lifecycle
+  // Handle active game session
   useEffect(() => {
     if (gameState !== 'playing') return;
 
-    // Key listeners
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
 
-    // Start loop
     rafRef.current = requestAnimationFrame(loop);
-
-    // Spawn timer
-    spawnRef.current = setInterval(spawnItem, SPAWN_MS);
-
-    // Countdown
-    const ticker = setInterval(() => {
-      stateRef.current.timeLeft -= 1;
-      setTimeLeft(stateRef.current.timeLeft);
-      if (stateRef.current.timeLeft <= 0) {
-        setGameState('over');
-      }
-    }, 1000);
+    spawnRef.current = setInterval(spawnItem, 750);
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
       cancelAnimationFrame(rafRef.current);
       clearInterval(spawnRef.current);
-      clearInterval(ticker);
     };
   }, [gameState, handleKeyDown, handleKeyUp, loop, spawnItem]);
 
   return (
     <section
-      ref={sectionRef}
-      id="catch-the-code"
-      className="section-padding"
-      aria-labelledby="catch-heading"
+      id="play"
+      className="section-padding bg-purple-50/20 dark:bg-cinematic-900/40 relative"
+      aria-labelledby="play-heading"
     >
       <div className="container-max">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={inView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8"
-        >
-          <span className="text-sm font-mono font-medium text-brand-500 tracking-widest uppercase">Interactive</span>
-          <h2 id="catch-heading" className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mt-2">
+        <div className="text-center max-w-xl mx-auto mb-10">
+          <span className="text-xs font-mono font-semibold text-gold-500 tracking-widest uppercase">
+            Mini Game
+          </span>
+          <h2
+            id="play-heading"
+            className="text-4xl sm:text-5xl font-serif text-gray-900 dark:text-white mt-1 mb-2"
+          >
             Catch the Code
           </h2>
-          <p className="mt-3 text-gray-500 dark:text-gray-400 max-w-md mx-auto">
-            Catch my stack. Dodge the bugs. Use the arrow keys or drag.
+          <p className="text-sm text-gray-600 dark:text-gray-400 font-sans">
+            Catch my stack words for +10 points. Dodge the bugs. You have 3 lives.
           </p>
-        </motion.div>
+        </div>
 
         <div className="flex flex-col items-center">
           {/* Game HUD */}
-          <div className="flex items-center justify-between w-full max-w-[360px] mb-3 px-1">
-            <span className="text-sm font-mono font-semibold text-brand-500">
-              Score: {score}
-            </span>
-            <span className={`text-sm font-mono font-semibold ${timeLeft <= 10 ? 'text-red-500 animate-pulse' : 'text-gray-500 dark:text-gray-400'}`}>
-              {gameState === 'playing' ? `⏱ ${timeLeft}s` : `${GAME_DURATION}s`}
-            </span>
+          <div className="flex items-center justify-between w-full max-w-[380px] mb-3 px-2 text-xs font-mono">
+            <div className="flex items-center gap-1.5 text-red-500">
+              {[...Array(3)].map((_, i) => (
+                <Heart
+                  key={i}
+                  className={`w-4 h-4 ${
+                    i < lives ? 'fill-red-500 text-red-500' : 'text-gray-400 opacity-40'
+                  }`}
+                />
+              ))}
+            </div>
+
+            <div className="flex items-center gap-4">
+              <span className="text-purple-600 dark:text-purple-300 font-bold">
+                Score: {score}
+              </span>
+              <span className="text-gold-500 font-bold">
+                Best: {bestScore}
+              </span>
+            </div>
           </div>
 
-          {/* Canvas */}
+          {/* Game Canvas Container */}
           <div
-            className="relative rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800"
+            className="relative rounded-3xl border-2 border-purple-300/60 dark:border-purple-800/60 overflow-hidden bg-white dark:bg-cinematic-950 shadow-2xl"
             style={{ width: GAME_WIDTH, height: GAME_HEIGHT, touchAction: 'none' }}
             onPointerMove={gameState === 'playing' ? handlePointerMove : undefined}
-            onTouchMove={gameState === 'playing' ? (e) => {
-              e.preventDefault();
-              handlePointerMove(e);
-            } : undefined}
           >
             <canvas
               ref={canvasRef}
               width={GAME_WIDTH}
               height={GAME_HEIGHT}
-              className="block"
-              aria-label="Catch the Code game canvas"
+              className="block w-full h-full"
+              aria-label="Catch the Code game area"
             />
 
-            {/* Overlay: idle / over */}
+            {/* Overlays */}
             {gameState !== 'playing' && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm">
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-white/90 dark:bg-cinematic-950/90 backdrop-blur-md text-center">
                 {gameState === 'over' ? (
-                  <>
-                    <Trophy className="w-10 h-10 text-yellow-500 mb-3" aria-hidden="true" />
-                    <p className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex flex-col items-center"
+                  >
+                    <Trophy className="w-12 h-12 text-gold-400 mb-2 animate-bounce" />
+                    <h3 className="text-3xl font-serif text-gray-900 dark:text-white mb-1">
                       Game Over!
+                    </h3>
+                    <p className="text-sm font-mono text-purple-600 dark:text-purple-300 mb-1">
+                      Final Score: {score}
                     </p>
-                    <p className="text-lg font-mono text-brand-500 font-semibold mb-1">
-                      Score: {score}
+                    <p className="text-xs font-mono text-gold-500 mb-5">
+                      All-time Best: {bestScore}
                     </p>
-                    {caught.length > 0 && (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-                        You caught: {caught.join(', ')}
-                      </p>
-                    )}
                     <button
                       onClick={startGame}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-lg transition-all"
+                      className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-brand-600 to-purple-700 hover:from-brand-500 hover:to-purple-600 text-white font-medium text-sm transition-all shadow-lg shadow-purple-900/30"
                     >
-                      <RotateCcw className="w-4 h-4" aria-hidden="true" />
+                      <RotateCcw className="w-4 h-4" />
                       Play Again
                     </button>
-                  </>
+                  </motion.div>
                 ) : (
-                  <>
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex flex-col items-center"
+                  >
                     <span className="text-4xl mb-3" aria-hidden="true">🎮</span>
-                    <p className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                      Ready to play?
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-4 max-w-[240px] text-center">
-                      Catch tech stack items (+10) &amp; dodge bugs (−5) in {GAME_DURATION} seconds!
+                    <h3 className="text-3xl font-serif text-gray-900 dark:text-white mb-1">
+                      Ready to Play?
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 max-w-[260px] leading-relaxed mb-6 font-sans">
+                      Catch React, C++, JS, Git, AWS, HTML with your paddle. Avoid the bugs.
                     </p>
                     <button
                       onClick={startGame}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-brand-500 hover:bg-brand-600 text-white font-semibold rounded-xl shadow-lg transition-all"
+                      className="flex items-center gap-2 px-7 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-purple-700 hover:from-brand-500 hover:to-purple-600 text-white font-medium text-sm transition-all shadow-lg shadow-purple-900/30"
                     >
-                      <Play className="w-4 h-4" aria-hidden="true" />
+                      <Play className="w-4 h-4" />
                       Start Game
                     </button>
-                  </>
+                  </motion.div>
                 )}
               </div>
             )}
           </div>
 
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-3 font-mono">
-            ← → arrow keys &nbsp;|&nbsp; mouse / touch to move the paddle
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-3 font-mono">
+            Controls: Left / Right arrows or A / D keys &bull; Drag on mobile
           </p>
         </div>
       </div>

@@ -1,36 +1,45 @@
-import { Github, Linkedin, Instagram, Youtube, Code2 } from 'lucide-react';
+import { Github, Linkedin, Instagram, Youtube, Heart } from 'lucide-react';
 
-const socials = [
-  { icon: Github, href: 'https://github.com/shivv2430', label: 'GitHub' },
+const SOCIALS = [
   { icon: Linkedin, href: 'https://www.linkedin.com/in/shivv2430', label: 'LinkedIn' },
+  { icon: Github, href: 'https://github.com/shivv2430', label: 'GitHub' },
   { icon: Instagram, href: 'https://www.instagram.com/shivani.learns/', label: 'Instagram' },
   { icon: Youtube, href: 'https://www.youtube.com/@Shivani.learns', label: 'YouTube' },
 ];
 
 export default function Footer() {
   return (
-    <footer className="border-t border-gray-100 dark:border-gray-800 py-10 px-4">
-      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-sm">
-          <Code2 className="w-4 h-4 text-brand-500" aria-hidden="true" />
-          <span>Built with ❤️ by <span className="text-brand-500 font-medium">Shivani Pal</span></span>
+    <footer className="border-t border-purple-200/40 dark:border-purple-900/40 py-12 px-4 bg-[#faf8ff] dark:bg-cinematic-950">
+      <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-6">
+        <div>
+          <a
+            href="#home"
+            className="font-serif text-2xl text-gray-900 dark:text-white hover:text-brand-400 transition-colors"
+          >
+            Shivani <span className="italic text-gradient-gold">Pal</span>
+          </a>
+          <p className="text-xs font-mono text-gray-500 dark:text-gray-400 mt-1">
+            Turning curiosity into code and ideas into reality.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
-          {socials.map(({ icon: Icon, href, label }) => (
+
+        <div className="flex items-center gap-4">
+          {SOCIALS.map(({ icon: Icon, href, label }) => (
             <a
               key={label}
               href={href}
               target="_blank"
               rel="noopener noreferrer"
               aria-label={label}
-              className="p-2 text-gray-400 hover:text-brand-500 transition-colors rounded-lg hover:bg-brand-50 dark:hover:bg-brand-950/30"
+              className="p-2 rounded-xl text-gray-400 hover:text-gold-400 hover:bg-purple-100/50 dark:hover:bg-purple-950/40 transition-colors"
             >
-              <Icon className="w-4 h-4" aria-hidden="true" />
+              <Icon className="w-4 h-4" />
             </a>
           ))}
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">
-          © {new Date().getFullYear()} Shivani Pal. All rights reserved.
+
+        <p className="text-xs font-mono text-gray-500 dark:text-gray-400">
+          &copy; 2026 Shivani Pal. All rights reserved.
         </p>
       </div>
     </footer>
