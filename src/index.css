@@ -1,0 +1,66 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light dark;
+  scroll-behavior: smooth;
+  scrollbar-color: #9cb5ff #f0f4ff;
+  scrollbar-width: thin;
+}
+
+.dark {
+  scrollbar-color: #4a6cf7 #1e1e3a;
+}
+
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: #f0f4ff; }
+  ::-webkit-scrollbar-thumb { background: #9cb5ff; border-radius: 4px; }
+  .dark ::-webkit-scrollbar-track { background: #1e1e3a; }
+  .dark ::-webkit-scrollbar-thumb { background: #4a6cf7; }
+}
+
+@layer base {
+  * { @apply border-border; }
+  body {
+    @apply bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #4a6cf7, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .glass {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+  .glass-dark {
+    background: rgba(0,0,0,0.3);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .section-padding {
+    @apply py-20 px-4 sm:px-6 lg:px-8;
+  }
+  .container-max {
+    @apply max-w-6xl mx-auto;
+  }
+}
+
+:focus-visible {
+  outline: 3px solid #4a6cf7;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::selection {
+  background: rgba(74, 108, 247, 0.2);
+  color: inherit;
+}
